@@ -1,16 +1,22 @@
 const fs = require('fs');
-const csv = require('csv-parser');
+const http = require('http');
+const https = require('https');
 
-const csvFilePath = process.argv[2];
-const columnName = process.argv[3];
+const urls = process.argv.slice(2);
 
-let sum = 0;
+urls.forEach((url) => {
+  const protocol = url.startsWith('https') ? https : http;
+  const options = { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0' } };
 
-fs.createReadStream(csvFilePath)
-  .pipe(csv())
-  .on('data', (data) => {
-    // TODO: Add code to sum values in the specified column
-  })
-  .on('end', () => {
-    console.log(`The sum of ${columnName} is: ${sum}`);
+  protocol.get(url, options, (res) => {
+    let data = '';
+    res.on('data', (chunk) => {
+      data += chunk;
+    });
+    res.on('end', () => {
+      // TODO: Write the data to a file with the hostname as the filename
+    });
+  }).on('error', (err) => {
+    console.error(`Error downloading ${url}: ${err}`);
   });
+});
